@@ -14,7 +14,7 @@ class RecipeToNote:
     schema_extraction_provider: BaseSchemaExtractionProvider
     model: BaseChatModel
     notes_app: BaseNotesApp
-    url: Optional[str]
+    _url: Optional[str]
     documents: Optional[list[Document]]
     extracted_schema: Optional[Recipe]
 
@@ -30,10 +30,10 @@ class RecipeToNote:
         self.logger = logging.getLogger(__name__)
 
     def url(self, url: str) -> None:
-        self.url = url
+        self._url = url
 
     async def scrape(self) -> None:
-        self.documents = await self.scraper.scrape(self.url)
+        self.documents = await self.scraper.scrape(self._url)
 
     async def extract_schema(self) -> None:
         self.extracted_schema = await extract_schema(self.model, self.documents)
@@ -41,8 +41,8 @@ class RecipeToNote:
     async def create_note(self) -> None:
         enriched_recipe = EnrichedRecipe(
             **self.extracted_schema.model_dump(),
-            url=self.url,
-            domain=self.url.split('/')[2]
+            url=self._url,
+            domain=self._url.split('/')[2]
         )
         await self.notes_app.create_note(enriched_recipe)
 
