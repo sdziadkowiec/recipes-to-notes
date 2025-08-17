@@ -12,7 +12,7 @@ Comes with customizable plugins framework for integrating with different scraper
 ```python
 from recipes_to_notes import RecipeToNote
 from recipes_to_notes.plugins.scraping.spider import SpiderScraper
-from recipes_to_notes.plugins.schema_extraction.azure_openai import OpenAI
+from recipes_to_notes.plugins.schema_extraction.openai import OpenAI
 from recipes_to_notes.plugins.notes.notion import NotionNotesApp
 import os
 import asyncio
@@ -39,10 +39,13 @@ runner = RecipeToNote(
 runner.url(url)
 asyncio.run(runner.run())
 ```
+For a more comprehensive example, see [notebooks/run.ipynb](notebooks/run.ipynb)
+
+All functions that implement the workflow are async, so they should be used with `asyncio.run()` or `await`.
 
 ## Installing
 ### Pre-requisites
-- Python
+- Credentials for plugins 😊
 - [Astral UV](https://docs.astral.sh/uv/getting-started/installation/)
 
 ### Install
@@ -111,3 +114,8 @@ Recipe schema is defined as follows:
 - `instructions (Optional[List[str]])`: Step-by-step cooking instructions.
 - `hints (Optional[str])`: Additional tips or suggestions for the recipe.
 - `image_url (Optional[str])`: URL of the main recipe image if available.
+
+
+# Internationalization
+Names of properties and recipe section headings in Notion plugin are language-specific.
+By default, English and Polish locale are provided, but other languages can be easily added by modifying [i18n.py](src/recipes_to_notes/i18n.py) file
