@@ -80,7 +80,11 @@ async def extract_schema(model: BaseChatModel, documents: list[Document]) -> Opt
     
     chain = prompt | extraction_model
     
-    logger.info(f"Extracting schema from {documents[0].metadata['original_url']}")
-    recipe = await chain.ainvoke({"document": document})
-    logger.info(f"Extracted schema from {documents[0].metadata['original_url']}")
-    return recipe
+    try:
+        logger.info(f"Extracting schema from {documents[0].metadata['original_url']}")
+        recipe = await chain.ainvoke({"document": document})
+        logger.info(f"Extracted schema from {documents[0].metadata['original_url']}")
+        return recipe
+    except Exception as e:
+        logger.error(f"Error extracting schema from {documents[0].metadata['original_url']}: {e}")
+        return None
