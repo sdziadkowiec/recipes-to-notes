@@ -4,6 +4,7 @@ import os
 from typing import Optional
 import logging
 from notion_client import AsyncClient, Client
+from recipes_to_notes.i18n import NOTES_LABELS
 
 class NotionNotesApp(BaseNotesApp):
 
@@ -12,7 +13,7 @@ class NotionNotesApp(BaseNotesApp):
     client: Client
     async_client: AsyncClient
 
-    def __init__(self, database_name: str, notion_token: Optional[str] = os.getenv('NOTION_TOKEN')) -> None:
+    def __init__(self, database_name: str, notion_token: Optional[str] = os.getenv('NOTION_TOKEN'), language: Optional[str] = "en") -> None:
         self.logger = logging.getLogger(__name__)
         if notion_token is None or notion_token == '':
             raise ValueError("NOTION_TOKEN is not set")
@@ -20,7 +21,7 @@ class NotionNotesApp(BaseNotesApp):
         self.async_client = AsyncClient(auth=notion_token)
 
         self.database_name = database_name
-
+        self.language = language
         database_id_query = self.client.search(query=self.database_name, filter={"property": "object", "value": "database"})
         if len(database_id_query['results']) == 0:
             raise ValueError(f"Database with name {self.database_name} not found")
@@ -61,7 +62,7 @@ class NotionNotesApp(BaseNotesApp):
                 "title": [
                     {
                         "text": {
-                            "content": recipe.name or "Untitled Recipe"
+                            "content": recipe.name or NOTES_LABELS[self.language]["untitled_recipe"]
                         }
                     }
                 ]
@@ -70,8 +71,16 @@ class NotionNotesApp(BaseNotesApp):
         
         # Add Recipe URL if provided
         if recipe.url:
-            properties["Recipe URL"] = {
+            properties[NOTES_LABELS[self.language]["url"]] = {
                 "url": recipe.url
+            }
+
+        # Add Domain if provided
+        if recipe.domain:
+            properties[NOTES_LABELS[self.language]["domain"]] = {
+                "select": {
+                    "name": recipe.domain
+                }
             }
         
         return properties
@@ -102,7 +111,7 @@ class NotionNotesApp(BaseNotesApp):
                             {
                                 "type": "text",
                                 "text": {
-                                    "content": "Ingredients"
+                                    "content": NOTES_LABELS[self.language]["ingredients"]
                                 }
                             }
                         ]
@@ -138,7 +147,7 @@ class NotionNotesApp(BaseNotesApp):
                             {
                                 "type": "text",
                                 "text": {
-                                    "content": "Cooking Time & Temperature"
+                                    "content": NOTES_LABELS[self.language]["cooking_time_temperature"]
                                 }
                             }
                         ]
@@ -171,7 +180,7 @@ class NotionNotesApp(BaseNotesApp):
                             {
                                 "type": "text",
                                 "text": {
-                                    "content": "Instructions"
+                                    "content": NOTES_LABELS[self.language]["instructions"]
                                 }
                             }
                         ]
@@ -207,7 +216,7 @@ class NotionNotesApp(BaseNotesApp):
                             {
                                 "type": "text",
                                 "text": {
-                                    "content": "Hints"
+                                    "content": NOTES_LABELS[self.language]["hints"]
                                 }
                             }
                         ]

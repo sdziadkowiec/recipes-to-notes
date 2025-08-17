@@ -35,4 +35,7 @@ class EnrichedRecipe(Recipe):
     url: str = Field(
         description="The URL of the recipe website."
     )
+    domain: str = Field(
+        description="The domain of the recipe website."
+    )
     

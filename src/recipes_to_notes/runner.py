@@ -41,7 +41,8 @@ class RecipeToNote:
     async def create_note(self) -> None:
         enriched_recipe = EnrichedRecipe(
             **self.extracted_schema.model_dump(),
-            url=self.url
+            url=self.url,
+            domain=self.url.split('/')[2]
         )
         await self.notes_app.create_note(enriched_recipe)
 
