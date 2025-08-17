@@ -4,7 +4,7 @@ Toolchain for scraping cooking recipes, structuring them using LLM-based schema 
 Comes with customizable plugins framework for integrating with different scrapers, LLMs, notes apps. Default stack:
 
 - Scraping: [Spider Cloud](https://spider.cloud)
-- Recipe schema exctraction: [Azure OpenAI](https://python.langchain.com/api_reference/openai/chat_models/langchain_openai.chat_models.azure.AzureChatOpenAI.html#azurechatopenai)
+- Recipe schema extraction: [OpenAI](https://python.langchain.com/api_reference/openai/chat_models/langchain_openai.chat_models.base.ChatOpenAI.html) and [Azure OpenAI](https://python.langchain.com/api_reference/openai/chat_models/langchain_openai.chat_models.azure.AzureChatOpenAI.html#azurechatopenai)
 - Notes app: [Notion](http://notion.com/)
 
 ## How to use?
@@ -12,7 +12,7 @@ Comes with customizable plugins framework for integrating with different scraper
 ```python
 from recipes_to_notes import RecipeToNote
 from recipes_to_notes.plugins.scraping.spider import SpiderScraper
-from recipes_to_notes.plugins.schema_extraction.azure_openai import AzureOpenAI
+from recipes_to_notes.plugins.schema_extraction.azure_openai import OpenAI
 from recipes_to_notes.plugins.notes.notion import NotionNotesApp
 import os
 import asyncio
@@ -21,10 +21,8 @@ url = "<YOUR-RECIPE-URL-GOES-HERE>"
 
 spider_api_key = os.getenv("SPIDER_API_KEY")
 openai_config = {
-    "azure_endpoint": os.getenv("AZURE_OPENAI_ENDPOINT"),
-    "api_key": os.getenv("AZURE_OPENAI_KEY"),
-    "azure_deployment": os.getenv("AZURE_OPENAI_DEPLOYMENT"),
-    "api_version": os.getenv("AZURE_OPENAI_API_VERSION"),
+    "api_key": os.getenv("OPENAI_API_KEY"),
+    "model": os.getenv("OPENAI_MODEL")
 }
 notion_config = {
     "database_name": "Recipes",
@@ -34,7 +32,7 @@ notion_config = {
 
 runner = RecipeToNote(
     scraper=SpiderScraper(api_key=spider_api_key),
-    schema_extraction_provider=AzureOpenAI(**openai_config),
+    schema_extraction_provider=OpenAI(**openai_config),
     notes_app=NotionNotesApp(**notion_config),
 )
 
