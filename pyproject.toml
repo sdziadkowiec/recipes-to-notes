@@ -3,7 +3,7 @@ name = "recipes-to-notes"
 version = "1.0.0"
 description = "https://www.kwestiasmaku.com/desery/ciasta/czekoladowe_brownie/przepis.html"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
     "langchain-community>=0.3.27",
     "langchain-core>=0.3.74",
