@@ -16,8 +16,9 @@ class SpiderScraper(BaseScraper):
 
     async def scrape(self, url: str) -> list[Document]:
         try:
+            self.logger.info(f"Scraping {url}")
             docs = await SpiderLoader(url=url, api_key=self.api_key, params=self.params).aload()
-            self.logger.debug(f"Scraped {len(docs)} documents from {url}")
+            self.logger.info(f"Scraped {len(docs)} documents from {url}")
         except Exception as e:
             self.logger.error(f"Error scraping {url}: {e}")
             return []

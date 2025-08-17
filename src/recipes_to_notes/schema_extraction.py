@@ -3,6 +3,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.documents.base import Document
 from langchain_core.prompts import ChatPromptTemplate
 from typing import Optional
+import logging
 
 SYSTEM_PROMPT = """
 You are a precise recipe extraction assistant. Your task is to extract cooking recipe information from scraped website content and return it in the specified structured format.
@@ -47,7 +48,7 @@ Extract only what is clearly present and recipe-specific. When in doubt, omit th
 """
 
 async def extract_schema(model: BaseChatModel, documents: list[Document]) -> Optional[Recipe]:
-    
+    logger = logging.getLogger(__name__)
     if len(documents) == 0:
         raise ValueError("No documents provided")
     elif len(documents) > 1:
@@ -64,6 +65,7 @@ async def extract_schema(model: BaseChatModel, documents: list[Document]) -> Opt
     
     chain = prompt | extraction_model
     
+    logger.info(f"Extracting schema from {documents[0].metadata['original_url']}")
     recipe = await chain.ainvoke({"document": document})
-
+    logger.info(f"Extracted schema from {documents[0].metadata['original_url']}")
     return recipe
