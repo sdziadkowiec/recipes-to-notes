@@ -6,7 +6,21 @@ import logging
 from notion_client import AsyncClient, Client
 from recipes_to_notes.i18n import NOTES_LABELS
 
+
 class NotionNotesApp(BaseNotesApp):
+    """Notion notes application integration.
+    
+    This class provides functionality to create and update recipe notes
+    in a Notion database, with support for multiple languages.
+    
+    Attributes:
+        database_id (str): The ID of the target Notion database.
+        database_name (str): The name of the target Notion database.
+        client (Client): Synchronous Notion client for database queries.
+        async_client (AsyncClient): Asynchronous Notion client for page operations.
+        language (str): Language code for internationalized labels.
+        logger (logging.Logger): Logger instance for this class.
+    """
 
     database_id: str
     database_name: str
@@ -14,6 +28,18 @@ class NotionNotesApp(BaseNotesApp):
     async_client: AsyncClient
 
     def __init__(self, database_name: str, notion_token: Optional[str] = os.getenv('NOTION_TOKEN'), language: Optional[str] = "en") -> None:
+        """Initialize the Notion notes app integration.
+        
+        Args:
+            database_name (str): The name of the target Notion database.
+            notion_token (Optional[str]): The Notion API token. If None, will attempt to read
+                from NOTION_TOKEN environment variable.
+            language (Optional[str]): Language code for internationalized labels. Defaults to "en".
+                
+        Raises:
+            ValueError: If no Notion token is provided or the specified database
+                is not found.
+        """
         self.logger = logging.getLogger(__name__)
         if notion_token is None or notion_token == '':
             raise ValueError("NOTION_TOKEN is not set")
@@ -27,11 +53,14 @@ class NotionNotesApp(BaseNotesApp):
             raise ValueError(f"Database with name {self.database_name} not found")
         self.database_id = database_id_query['results'][0]['id']
 
-    async def _check_page_exists(self, page_name: str) -> str | None:
+    async def _check_page_exists(self, page_name: str) -> Optional[str]:
         """Check if a page with the given name already exists in the database.
         
+        Args:
+            page_name (str): The name of the page to search for.
+            
         Returns:
-            str: Page ID if page exists, None if it doesn't exist
+            Optional[str]: The page ID if a page with the given name exists, None otherwise.
         """
         try:
             # Query the database for pages with the same name
@@ -56,7 +85,14 @@ class NotionNotesApp(BaseNotesApp):
             return None
 
     def _prepare_page_properties(self, recipe: EnrichedRecipe) -> dict:
-        """Prepare the page properties for Notion page creation/update."""
+        """Prepare the page properties for Notion page creation/update.
+        
+        Args:
+            recipe (EnrichedRecipe): The enriched recipe data to convert to Notion properties.
+            
+        Returns:
+            dict: A dictionary of Notion page properties.
+        """
         properties = {
             "Name": {
                 "title": [
@@ -85,8 +121,15 @@ class NotionNotesApp(BaseNotesApp):
         
         return properties
 
-    def _prepare_page_cover(self, recipe: EnrichedRecipe) -> dict | None:
-        """Prepare the cover image for Notion page."""
+    def _prepare_page_cover(self, recipe: EnrichedRecipe) -> Optional[dict]:
+        """Prepare the cover image for Notion page.
+        
+        Args:
+            recipe (EnrichedRecipe): The enriched recipe data containing the image URL.
+            
+        Returns:
+            Optional[dict]: A dictionary with cover image configuration, or None if no image URL.
+        """
         if recipe.image_url:
             return {
                 "type": "external",
@@ -96,8 +139,15 @@ class NotionNotesApp(BaseNotesApp):
             }
         return None
 
-    def _prepare_page_content(self, recipe: EnrichedRecipe) -> list:
-        """Prepare the content blocks for Notion page."""
+    def _prepare_page_content(self, recipe: EnrichedRecipe) -> list[dict]:
+        """Prepare the content blocks for Notion page.
+        
+        Args:
+            recipe (EnrichedRecipe): The enriched recipe data to convert to Notion blocks.
+            
+        Returns:
+            list[dict]: A list of Notion block objects representing the recipe content.
+        """
         children = []
         
         # Add Ingredients section
@@ -241,7 +291,17 @@ class NotionNotesApp(BaseNotesApp):
         return children
 
     async def _create_page(self, recipe: EnrichedRecipe) -> dict:
-        """Create a new page in Notion."""
+        """Create a new page in Notion.
+        
+        Args:
+            recipe (EnrichedRecipe): The enriched recipe data to create a page for.
+            
+        Returns:
+            dict: The created Notion page object.
+            
+        Raises:
+            Exception: If page creation fails.
+        """
         properties = self._prepare_page_properties(recipe)
         cover = self._prepare_page_cover(recipe)
         children = self._prepare_page_content(recipe)
@@ -262,7 +322,18 @@ class NotionNotesApp(BaseNotesApp):
             raise
 
     async def _update_page(self, page_id: str, recipe: EnrichedRecipe) -> dict:
-        """Update an existing page in Notion."""
+        """Update an existing page in Notion.
+        
+        Args:
+            page_id (str): The ID of the existing page to update.
+            recipe (EnrichedRecipe): The enriched recipe data to update the page with.
+            
+        Returns:
+            dict: The updated Notion page object.
+            
+        Raises:
+            Exception: If page update fails.
+        """
         properties = self._prepare_page_properties(recipe)
         cover = self._prepare_page_cover(recipe)
         
@@ -296,11 +367,21 @@ class NotionNotesApp(BaseNotesApp):
             self.logger.error(f"Failed to update Notion page: {str(e)}")
             raise
 
-    async def create_note(self, recipe: EnrichedRecipe):
-        """Create or update a note in Notion using the provided EnrichedRecipe schema (upsert)."""
+    async def create_note(self, recipe: EnrichedRecipe) -> dict:
+        """Create or update a note in Notion using the provided EnrichedRecipe schema (upsert).
+        
+        This method implements an upsert operation - it will update an existing page
+        if one with the same name exists, otherwise it will create a new page.
+        
+        Args:
+            recipe (EnrichedRecipe): The enriched recipe data to create or update a note for.
+            
+        Returns:
+            dict: The created or updated Notion page object.
+        """
         
         # Check if a page with the same name already exists
-        page_name = recipe.name or "Untitled Recipe"
+        page_name = recipe.name or NOTES_LABELS[self.language]["untitled_recipe"]
         existing_page_id = await self._check_page_exists(page_name)
         
         if existing_page_id:

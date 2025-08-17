@@ -5,7 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from typing import Optional
 import logging
 
-SYSTEM_PROMPT = """
+SYSTEM_PROMPT: str = """
 You are a precise recipe extraction assistant. Your task is to extract cooking recipe information from scraped website content and return it in the specified structured format.
 
 CRITICAL EXTRACTION RULES:
@@ -48,6 +48,21 @@ Extract only what is clearly present and recipe-specific. When in doubt, omit th
 """
 
 async def extract_schema(model: BaseChatModel, documents: list[Document]) -> Optional[Recipe]:
+    """Extract structured recipe data from unstructured document content.
+    
+    Uses a language model to parse scraped website content and extract
+    recipe information into a structured Recipe object.
+    
+    Args:
+        model (BaseChatModel): The language model to use for extraction.
+        documents (list[Document]): List containing exactly one Document with scraped content.
+        
+    Returns:
+        Optional[Recipe]: A Recipe object with extracted data, or None if extraction fails.
+        
+    Raises:
+        ValueError: If no documents are provided or more than one document is provided.
+    """
     logger = logging.getLogger(__name__)
     if len(documents) == 0:
         raise ValueError("No documents provided")

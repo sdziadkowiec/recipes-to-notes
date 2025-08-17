@@ -3,7 +3,19 @@ from typing import Optional, List
 
 
 class Recipe(BaseModel):
-    """ Cooking recipe extracted from a website """
+    """Cooking recipe extracted from a website.
+    
+    This model represents the structured data extracted from recipe websites,
+    containing all the essential information needed to recreate a recipe.
+    
+    Attributes:
+        name (Optional[str]): The exact title/name of the recipe as it appears on the website.
+        ingredients (Optional[List[str]]): List of ingredients with quantities and measurements.
+        cooking_time_temperature (Optional[str]): Cooking time, temperature, or timing information.
+        instructions (Optional[List[str]]): Step-by-step cooking instructions.
+        hints (Optional[str]): Additional tips or suggestions for the recipe.
+        image_url (Optional[str]): URL of the main recipe image if available.
+    """
     name: Optional[str] = Field(
         default=None,
         description="The exact title/name of the recipe as it appears on the website. Do not modify or guess."
@@ -31,7 +43,15 @@ class Recipe(BaseModel):
 
 
 class EnrichedRecipe(Recipe):
-    """ Cooking recipe extracted from a website with additional information """
+    """Cooking recipe with additional metadata.
+    
+    This model extends the base Recipe with additional information about
+    the source website, used for creating enriched notes.
+    
+    Attributes:
+        url (str): The URL of the recipe website.
+        domain (str): The domain of the recipe website.
+    """
     url: str = Field(
         description="The URL of the recipe website."
     )

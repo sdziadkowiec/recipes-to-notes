@@ -1,6 +1,7 @@
 # recipes-to-notes
-Toolchain for scraping cooking recipes and saving as notes
+Toolchain for scraping cooking recipes, structuring them using LLM-based schema extraction and saving as notes
 
+Comes with customizable plugins, 
 
 ## Key concepts
 The workflow consists of 3 steps
@@ -33,9 +34,9 @@ class BaseNotesApp:
 `BaseScraper` and `BaseSchemaExtractionProvider` are based on Langchain and interface via its standard base classes. `BaseNotesApp` takes a Pydantic class with the recipe as input.
 
 ## Default plugins
-- Scraper: [Spider Cloud](https://spider.cloud)
-- SchemaExtractionProvider: [Azure OpenAI](https://python.langchain.com/api_reference/openai/chat_models/langchain_openai.chat_models.azure.AzureChatOpenAI.html#azurechatopenai)
-- NotesApp: [Notion](http://notion.com/)
+- Scraping: [Spider Cloud](https://spider.cloud)
+- Recipe schema exctraction: [Azure OpenAI](https://python.langchain.com/api_reference/openai/chat_models/langchain_openai.chat_models.azure.AzureChatOpenAI.html#azurechatopenai)
+- Notes app: [Notion](http://notion.com/)
 
 ## Getting started
 
