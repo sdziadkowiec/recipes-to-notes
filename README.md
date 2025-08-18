@@ -106,7 +106,9 @@ class BaseNotesApp:
 
 `BaseScraper` and `BaseSchemaExtractionProvider` are based on Langchain and interface via its standard base classes. `BaseNotesApp` takes a Pydantic class with the recipe as input.
 
-Recipe schema is defined as follows:
+## Schema
+
+`Recipe` schema is defined as follows:
 
 - `name (Optional[str])`: The exact title/name of the recipe as it appears on the website.
 - `ingredients (Optional[List[str]])`: List of ingredients with quantities and measurements.
@@ -115,6 +117,14 @@ Recipe schema is defined as follows:
 - `hints (Optional[str])`: Additional tips or suggestions for the recipe.
 - `image_url (Optional[str])`: URL of the main recipe image if available.
 
+Before passing to notes app, the schema is enriched by 2 additional attributes included in `EnrichedRecipe` schema:
+- `url: str`: URL of the recipe
+- `domain: str`: Domain name of the recipe's site
+
+
+## Packaging
+
+Run `uv build` to create a wheel.
 
 # Internationalization
 Names of properties and recipe section headings in Notion plugin are language-specific.
