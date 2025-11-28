@@ -36,7 +36,7 @@ runner = RecipeToNote(
     notes_app=NotionNotesApp(**notion_config),
 )
 
-runner.url(url)
+runner.url = url
 asyncio.run(runner.run())
 ```
 For a more comprehensive example, see [notebooks/run.ipynb](notebooks/run.ipynb)

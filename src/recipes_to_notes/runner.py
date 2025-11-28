@@ -3,17 +3,18 @@ from recipes_to_notes.schema_extraction import extract_schema
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.documents.base import Document
 from recipes_to_notes.schema import Recipe, EnrichedRecipe
-from typing import Optional
+from recipes_to_notes.i18n import STREAM_MESSAGES
+from typing import Optional, AsyncGenerator
 import logging
 import os
 
 
 class RecipeToNote:
     """Main orchestration class for converting recipes to notes.
-    
+
     This class coordinates the entire pipeline from scraping recipe websites
     to creating structured notes in a target notes application.
-    
+
     Attributes:
         logger (logging.Logger): Logger instance for this class.
         scraper (BaseScraper): The web scraper implementation to use.
@@ -24,6 +25,7 @@ class RecipeToNote:
         documents (Optional[list[Document]]): The scraped documents from the current URL.
         extracted_schema (Optional[Recipe]): The extracted recipe schema.
     """
+
     logger: logging.Logger
     scraper: BaseScraper
     schema_extraction_provider: BaseSchemaExtractionProvider
@@ -34,10 +36,14 @@ class RecipeToNote:
     extracted_schema: Optional[Recipe]
 
     def __init__(
-        self, scraper: BaseScraper, schema_extraction_provider: BaseSchemaExtractionProvider, notes_app: BaseNotesApp
+        self,
+        scraper: BaseScraper,
+        schema_extraction_provider: BaseSchemaExtractionProvider,
+        notes_app: BaseNotesApp,
+        language: Optional[str] = "en",
     ) -> None:
         """Initialize the RecipeToNote orchestrator.
-        
+
         Args:
             scraper (BaseScraper): The web scraper implementation to use for content extraction.
             schema_extraction_provider (BaseSchemaExtractionProvider): The provider for language model access.
@@ -47,13 +53,27 @@ class RecipeToNote:
         self.schema_extraction_provider = schema_extraction_provider
         self.model = self.schema_extraction_provider.get_model()
         self.notes_app = notes_app
+        self.language = language
+
+        if language not in STREAM_MESSAGES:
+            raise ValueError(f"Invalid language: {language}")
 
         setup_logging()
         self.logger = logging.getLogger(__name__)
 
+    @property
+    def url(self) -> Optional[str]:
+        """Get the URL of the recipe being processed.
+
+        Returns:
+            Optional[str]: The URL of the recipe website to scrape and convert.
+        """
+        return self._url
+
+    @url.setter
     def url(self, url: str) -> None:
         """Set the URL of the recipe to process.
-        
+
         Args:
             url (str): The URL of the recipe website to scrape and convert.
         """
@@ -61,7 +81,7 @@ class RecipeToNote:
 
     async def scrape(self) -> None:
         """Scrape content from the configured URL.
-        
+
         Uses the configured scraper to extract content from the recipe website.
         The scraped documents are stored in the instance for later processing.
         """
@@ -69,7 +89,7 @@ class RecipeToNote:
 
     async def extract_schema(self) -> None:
         """Extract structured recipe data from scraped documents.
-        
+
         Uses the configured language model to parse the scraped content
         and extract structured recipe information.
         """
@@ -77,31 +97,60 @@ class RecipeToNote:
 
     async def create_note(self) -> None:
         """Create a note from the extracted recipe data.
-        
+
         Enriches the extracted recipe with URL metadata and creates
         a note in the configured notes application.
         """
         enriched_recipe = EnrichedRecipe(
-            **self.extracted_schema.model_dump(),
-            url=self._url,
-            domain=self._url.split('/')[2]
+            **self.extracted_schema.model_dump(), url=self._url, domain=self._url.split("/")[2]
         )
         await self.notes_app.create_note(enriched_recipe)
 
     async def run(self) -> None:
         """Execute the complete recipe-to-note conversion pipeline.
-        
+
         Runs the full pipeline: scraping, schema extraction, and note creation.
-        The URL must be set using the url() method before calling this method.
+        The URL must be set using the url property before calling this method.
         """
         await self.scrape()
         await self.extract_schema()
         await self.create_note()
 
+    async def run_stream(self) -> AsyncGenerator[str, None]:
+        """Execute the complete recipe-to-note conversion pipeline in streaming mode.
+
+        Runs the full pipeline: scraping, schema extraction, and note creation.
+        The URL must be set using the url property before calling this method.
+
+        Yields:
+            AsyncGenerator[str, None]: A generator that yields streaming messages.
+
+        Raises:
+            Exception: If an error occurs during the pipeline execution.
+
+        Example:
+        ```python
+        async for message in runner.run_stream():
+            print(message)
+        ```
+        """
+
+        try:
+            yield STREAM_MESSAGES[self.language]["scraping"]
+            await self.scrape()
+            yield STREAM_MESSAGES[self.language]["schema_extraction"]
+            await self.extract_schema()
+            yield STREAM_MESSAGES[self.language]["note_creation"]
+            await self.create_note()
+            yield STREAM_MESSAGES[self.language]["completed"]
+        except Exception as e:
+            yield STREAM_MESSAGES[self.language]["failed"]
+            raise e
+
 
 def setup_logging() -> None:
     """Configure logging for the application.
-    
+
     Sets up logging with a consistent format and configurable log level.
     The log level can be controlled via the LOG_LEVEL environment variable.
     If not set or invalid, defaults to INFO level.

@@ -3,15 +3,6 @@
 from typing import Dict
 
 NOTES_LABELS: Dict[str, Dict[str, str]] = {
-    """Multilingual labels for recipe note sections.
-    
-    Contains translations for recipe section headers and common labels
-    used when creating notes in various notes applications.
-    
-    Attributes:
-        en (dict[str, str]): English translations for recipe labels.
-        pl (dict[str, str]): Polish translations for recipe labels.
-    """
     "en": {
         "ingredients": "Ingredients",
         "cooking_time_temperature": "Cooking time and temperature",
@@ -29,5 +20,22 @@ NOTES_LABELS: Dict[str, Dict[str, str]] = {
         "url": "URL przepisu",
         "domain": "Strona",
         "untitled_recipe": "Przepis bez nazwy",
+    }
+}
+
+STREAM_MESSAGES: Dict[str, Dict[str, str]] = {
+    "en": {
+        "scraping": "Scraping website...",
+        "schema_extraction": "Extracting schema...",
+        "note_creation": "Creating note...",
+        "completed": "Note created successfully",
+        "failed": "Failed",
+    },
+    "pl": {
+        "scraping": "Scrapowanie strony...",
+        "schema_extraction": "Ekstrakcja schemy",
+        "note_creation": "Tworzenie notatki...",
+        "completed": "Notatka utworzona pomyślnie",
+        "failed": "Błąd",
     }
 }
