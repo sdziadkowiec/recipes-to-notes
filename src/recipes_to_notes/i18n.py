@@ -33,7 +33,7 @@ STREAM_MESSAGES: Dict[str, Dict[str, str]] = {
     },
     "pl": {
         "scraping": "Scrapowanie strony...",
-        "schema_extraction": "Ekstrakcja schemy",
+        "schema_extraction": "Ekstrakcja schemy...",
         "note_creation": "Tworzenie notatki...",
         "completed": "Notatka utworzona pomyślnie",
         "failed": "Błąd",

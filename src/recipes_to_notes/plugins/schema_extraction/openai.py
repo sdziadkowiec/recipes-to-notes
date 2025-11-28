@@ -15,20 +15,27 @@ class OpenAI(BaseSchemaExtractionProvider):
         model (ChatOpenAI): The configured ChatOpenAI model instance.
     """
 
-    def __init__(self, api_key: str, model: str) -> None:
+    REQUIRED_KWARGS = {"api_key", "model"}
+
+    def __init__(self, **openai_kwargs) -> None:
         """Initialize the OpenAI provider.
         
         Args:
-            api_key (str): The API key for authenticating with OpenAI.
-            model (str): The model to use for schema extraction.
+            **openai_kwargs: Keyword arguments for the ChatOpenAI model.
+                Required: api_key, model
+
+        Raises:
+            ValueError: If any required kwargs are missing.
         """
+        missing_kwargs = self.REQUIRED_KWARGS - openai_kwargs.keys()
+        if missing_kwargs:
+            raise ValueError(f"Missing required kwargs: {', '.join(sorted(missing_kwargs))}")
+        
         self.logger = logging.getLogger(__name__)
-        self.logger.info(f"Initializing OpenAI with model: {model}")
+        self.logger.info(f"Initializing OpenAI with model: {openai_kwargs['model']}")
 
         self.model = ChatOpenAI(
-            api_key=api_key,
-            model=model,
-            temperature=0,
+            **openai_kwargs
         )
 
     def get_model(self) -> BaseChatModel:

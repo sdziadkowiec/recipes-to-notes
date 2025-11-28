@@ -15,26 +15,30 @@ class AzureOpenAI(BaseSchemaExtractionProvider):
         model (AzureChatOpenAI): The configured AzureChatOpenAI model instance.
     """
 
-    def __init__(self, azure_endpoint: str, api_key: str, azure_deployment: str, api_version: str) -> None:
+    REQUIRED_KWARGS = {"azure_endpoint", "azure_deployment", "openai_api_version", "api_key"}
+
+    def __init__(self, **openai_kwargs) -> None:
         """Initialize the Azure OpenAI provider.
         
         Args:
-            azure_endpoint (str): The Azure OpenAI endpoint URL.
-            api_key (str): The API key for authenticating with Azure OpenAI.
-            azure_deployment (str): The name of the Azure OpenAI deployment to use.
-            api_version (str): The API version to use for requests.
+            **openai_kwargs: Keyword arguments for the AzureChatOpenAI model.
+                Required: azure_endpoint, azure_deployment, openai_api_version, api_key
+        
+        Raises:
+            ValueError: If any required kwargs are missing.
         """
         self.logger = logging.getLogger(__name__)
-        self.logger.info(f"Initializing AzureOpenAI with endpoint: {azure_endpoint}")
-        self.logger.info(f"Using deployment: {azure_deployment}")
-        self.logger.info(f"Using API version: {api_version}")
+        
+        missing_kwargs = self.REQUIRED_KWARGS - openai_kwargs.keys()
+        if missing_kwargs:
+            raise ValueError(f"Missing required kwargs: {', '.join(sorted(missing_kwargs))}")
+        
+        self.logger.info(f"Initializing AzureOpenAI with endpoint: {openai_kwargs['azure_endpoint']}")
+        self.logger.info(f"Using deployment: {openai_kwargs['azure_deployment']}")
+        self.logger.info(f"Using API version: {openai_kwargs['openai_api_version']}")
 
         self.model = AzureChatOpenAI(
-            azure_endpoint=azure_endpoint,
-            api_key=api_key,
-            azure_deployment=azure_deployment,
-            openai_api_version=api_version,
-            temperature=0,
+            **openai_kwargs
         )
 
     def get_model(self) -> BaseChatModel:
